@@ -1,9 +1,9 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from fastapi.responses import FileResponse
 import os
 import google.generativeai as genai
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -14,27 +14,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gemini setup - Free da chellam!
-api_key = os.getenv("GEMINI_API_KEY") or os.getenv("OPENAI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    model = None
+# Gemini setup
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 class Question(BaseModel):
     question: str
 
-@app.get("/")
-async def read_index():
-    return FileResponse('index.html')
+@app.api_route("/", methods=["GET", "HEAD"])
+async def home():
+    # index.html irukka path check pannuthu
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"status": "EduGenie is Live!"}
 
 @app.post("/ask")
-async def ask_question(q: Question):
-    if not model:
-        return {"answer": "API Key set pannala da chellam, Render la GEMINI_API_KEY check pannu!"}
+async def ask(q: Question):
     try:
         response = model.generate_content(q.question)
         return {"answer": response.text}
     except Exception as e:
-        return {"answer": f"Error da: {str(e)}"}
+        return {"answer": f"Error da chellam: {str(e)}"}
