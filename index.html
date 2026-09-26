@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>EduGenie</title>
+</head>
+<body style="font-family: Arial; text-align:center; margin-top:60px;">
+<h2>EduGenie - Doubt Assistant</h2>
+<input id="q" type="text" placeholder="Un kelviya type pannu" style="padding:10px; width:300px;">
+<button onclick="ask()" style="padding:10px 20px;">Ask</button>
+<p id="ans" style="margin-top:20px; border:1px solid grey; padding:15px; width:400px; margin-left:auto; margin-right:auto;">Answer inga varum...</p>
+
+<script>
+async function ask(){
+  let que = document.getElementById("q").value;
+  document.getElementById("ans").innerText = "Loading...";
+  let res = await fetch("http://127.0.0.1:8000/ask", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({question: que})
+  });
+  let data = await res.json();
+  document.getElementById("ans").innerText = data.answer;
+}
+</script>
+</body>
+</html>
