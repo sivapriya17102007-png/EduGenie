@@ -1,18 +1,29 @@
-import streamlit as st
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from fastapi.responses import FileResponse
+import os
 
-st.set_page_config(page_title="EduGenie - AI Study Buddy")
+app = FastAPI()
 
-st.title("🎓 EduGenie - Your AI Study Buddy")
-st.write("Welcome to EduGenie!")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-subject = st.selectbox("Subject select pannu:", ["Maths", "Science", "Computer Science"])
-question = st.text_input("Un doubt enna?")
+class Question(BaseModel):
+    question: str
 
-if st.button("Ask Genie"):
-    if question:
-        st.success(f"{subject} la un doubt: {question}")
-        st.write("AI Answer: Ithukku answer soon varum! (Demo version)")
-    else:
-        st.warning("Please oru question type pannu da!")
+@app.get("/")
+def home():
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"message": "EduGenie Backend Running"}
 
-st.sidebar.write("Created by Madhubala G")
+@app.post("/ask")
+def ask_genie(data: Question):
+    q = data.question
+    answer = f"Un kelvi: '{q}' ku answer: EduGenie AI yosikuthu! (Demo version)"
+    return {"answer": answer}
